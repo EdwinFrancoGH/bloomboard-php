@@ -1,0 +1,40 @@
+# azure-pipelines.yml
+# CI/CD pipeline template to build and deploy the PHP single-file app to Azure App Service.
+# Replace pipeline variables (azureSubscription, azureWebAppName) in the pipeline UI or create variable group.
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  packageName: 'bloomboard-php-$(Build.BuildId).zip'
+  artifactStagingDirectory: '$(Build.ArtifactStagingDirectory)'
+
+steps:
+- checkout: self
+  clean: true
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(artifactStagingDirectory)/$(packageName)'
+    replaceExistingArchive: true
+
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure Web App'
+  inputs:
+    azureSubscription: '$(azureSubscription)'    # service connection name
+    appName: '$(azureWebAppName)'                # Web App name
+    package: '$(artifactStagingDirectory)/$(packageName)'
+    enableCustomDeployment: true
+
+# Notes:
+# - Create a Service Connection in Project Settings → Service connections (Azure Resource Manager).
+# - Set pipeline variables `azureSubscription` and `azureWebAppName` in the pipeline or variable group.
+# - This pipeline zips the repo and deploys it. Ensure the App Service is configured for PHP (e.g., 8.2).
