@@ -217,6 +217,25 @@
       pushFloat(id, `+${Number(INCREMENT).toFixed(1)}`);
     }
 
+    
+    // Water habit - single, robust implementation
+    function waterHabit(id){
+      const now = new Date().toISOString();
+      habits = habits.map(h => {
+        if(h.id !== id) return h;
+        const raw = (h.score || 0) + INCREMENT;
+        const capped = Math.min(100, raw);
+        const rounded = Math.round(capped * 10) / 10;
+        const newDays = (h.daysTracked||[]).concat([now]);
+        return {...h, score: rounded, lastWatered: now, daysTracked: newDays };
+      });
+      saveHabits();
+      pushFloat(id, `+${Number(INCREMENT).toFixed(1)}`);
+      // ensure UI updates immediately
+      render();
+    }
+
+
     // Remove habit
     function removeHabit(id){
       habits = habits.filter(h => h.id !== id);
